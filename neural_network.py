@@ -12,25 +12,30 @@ def predict(model, x):
 
 
 def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
-    test = 0
+    w1 = initialize_weights(len(X[0]), nn_hdim)
+    b1 = init_bias(nn_hdim)
+    print(w1)
+    print(b1)
 
 
 def generate_random_number():
     temp = np.random.randint(-1, 1)
     if temp is not 0:
         denom = np.random.randint(-1000, 1000)
-        return temp / denom
-    else:
-        return generate_random_number()
+        if denom is not 0:
+            return temp / denom
+    return generate_random_number()
 
 
 def init_bias(k):
+    #b = [np.random.randint(-1,1) for j in range(k)]
     b = [generate_random_number() for j in range(k)]
+
     return b
 
 
 def initialize_weights(d, k):
-    w = [[np.random.randint(-10, 10) for j in range(k)] for i in range(d)]
+    w = [[generate_random_number() for j in range(d)] for i in range(k)]
     return w
 
 
