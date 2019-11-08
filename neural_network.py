@@ -3,6 +3,9 @@ import sklearn as sk
 import perceptron as pt
 import matplotlib.pyplot as plt
 
+
+# Function to calculate loss of the current version of the neural network. Computes probability distribution matrix and then computes the loss
+# by calculating the summation of the real label multiplied by the log of the probability distribution for each sample. Returns the normalized loss.
 def calculate_loss(model, X, y):
     yhat, a, h = zip(*[calculate_yhat(model, X[i]) for i in range(len(X))])
     loss = np.sum([y[i] * np.log(yhat[i]) for i in range(len(X))])
@@ -10,34 +13,28 @@ def calculate_loss(model, X, y):
     return loss
 
 
+# Helper function to return a 0 or a 1 based on whichever index of the label input has a greater probability distribution.
 def transform_probility_distribution(y):
     return 0 if y[0,0] > 0.5 else 1
 
 
+# Helper function to compute probability distribution yhat, a, and h variables. 
 def calculate_yhat(model, x):
     W1 = model['W1']
     b1 = model['b1']
     W2 = model['W2']
     b2 = model['b2']
 
-    # print("x: " + str(x))
-    # print("W1: " + str(W1))
-    # print("b1: " + str(b1))
     a = np.add(np.matmul(x, W1),b1)
     h = np.tanh(a)
-    # print("a: " + str(a))
-    # print("W2: " + str(W2))
-    # print("b2: " + str(b2))
-    # print("h: " + str(h))
 
     z = np.add(np.matmul(h, W2),b2)
-    # print("z: " + str(z))
     yhat = softmax(z)
-    # print("yhat: " + str(yhat))
     return yhat, a, h
 
+
+# Function to predict the binary output of a sample based on the current version of our neural network.
 def predict(model, x):
-    #print(x)
     yhat, a, h = calculate_yhat(model, x)
     return transform_probility_distribution(yhat)
 
@@ -47,15 +44,10 @@ def transform_labels(y):
     return [[0, 1] if y[i] == 1 else [1, 0] for i in range(len(y))]
 
 
-def transpose(h):
-    h_transpose = [[h[i]] for i in range(len(h))]
-    return h_transpose
-
-
+# Function to develop the two layer neural network. Performs forward propagation and then backpropagation according to project specifications
 def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
     if y[0] == 0 or y[0] == 1:
         y = transform_labels(y)
-    #y = transform_labels(y)
     W1 = init_weights(len(X[0]), nn_hdim)
     b1 = init_bias(nn_hdim)
     W2 = init_weights(nn_hdim, len(X[0]))
@@ -65,15 +57,9 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
     index = 0
 
     for itr in range(0, num_passes):
-        # y = calculate_loss(model, X, y)
-        # print("y: " + str(y))
         yhat, a, h = calculate_yhat(model, X[index])
         # compute the derivatives for gradient descent
-        # print(a)
-        # print(1 - np.tanh(h))
         dL_dyhat = yhat - y[index]
-        #print("dldy: " + str(dL_dyhat))
-
         dL_da = np.multiply((1 - np.square(h)), np.matmul(dL_dyhat, W2.transpose()))
 
         dL_dW2 = np.matmul(h.transpose(),dL_dyhat)
@@ -82,28 +68,16 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
         dL_dW1 = np.matmul(np.array([X[index]]).transpose(),dL_da)
         dL_db1 = dL_da
 
-        # print("dlda: " + str(dL_da))
-        # print("dldb1: " + str(dL_db1))
-        # print("dldb2: " + str(dL_db2))
-        # print("dldW1: ")
-        # print(str(dL_dW1))
-        # print("dldW2: " + str(dL_dW2))
         W1 = W1 - learning_rate * dL_dW1
         b1 = b1 - learning_rate * dL_db1
         W2 = W2 - learning_rate * dL_dW2
         b2 = b2 - learning_rate * dL_db2
-        #print("W1:" + str(W1))
-        #print("W2: " + str(W2))
-        #print("b1:" + str(b1))
-        #print("b2: " + str(b2))
-        # a = [np.dot(X[i], W1[i]) + b1[i] for i in range(len(b1))]
-        # h = np.tanh(a)
-        # z = [np.dot(h, W2[i]) + b2[i] for i in range(len(b2))]
-        # yhat = softmax(z)
+
         model['W1'] = W1
         model['b1'] = b1
         model['W2'] = W2
         model['b2'] = b2
+
         if print_loss and itr % 1000 == 0:
             error = calculate_loss(model, X, y)
             print("loss: " + str(error))
