@@ -1,13 +1,12 @@
 import numpy as np
 import sklearn as sk
 import perceptron as pt
-
+import matplotlib.pyplot as plt
 
 def calculate_loss(model, X, y):
     yhat, a, h = zip(*[calculate_yhat(model, X[i]) for i in range(len(X))])
     loss = np.sum([y[i] * np.log(yhat[i]) for i in range(len(X))])
     loss = loss / (-1 * len(X))
-    print(loss)
     return loss
 
 
@@ -20,25 +19,31 @@ def calculate_yhat(model, x):
     b1 = model['b1']
     W2 = model['W2']
     b2 = model['b2']
-    #print("x: " + str(x))
-    #print("W1: " + str(W1))
-    #print("b1: " + str(b1))
-    #print("W2: " + str(W2))
-    #print("b2: " + str(b2))
+
+    # print("x: " + str(x))
+    # print("W1: " + str(W1))
+    # print("b1: " + str(b1))
     a = [np.dot(x, W1[i]) + b1[i] for i in range(len(b1))]
     h = np.tanh(a)
     #print("a: " + str(a))
-    # #print("len of a: " + str(len(a)))
-    # #print("h: " + str(h))
+    #print("len of a: " + str(len(a)))
+    # print("W2: " + str(W2))
+    # print("b2: " + str(b2))
+    # print("h: " + str(h))
+    # print(type(h))
+    # print(type(h[0]))
+
     z = [np.dot(h, W2[i]) + b2[i] for i in range(len(b2))]
-    # #print("z: " + str(z))
+   # print("z: " + str(z))
     y = softmax(z)
     #print("y: " + str(y))
     return y, a, h
 
 
 def predict(model, x):
-    yhat = calculate_yhat(model, x)
+    print("here")
+    print(x)
+    yhat, a, h = calculate_yhat(model, x)
     return transform_probility_distribution(yhat)
 
 
@@ -53,7 +58,10 @@ def transpose(h):
 
 
 def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
-    # y = transform_labels(y)
+    if y[0] == 0 or y[0] == 1:
+        y = transform_labels(y)
+        print(y)
+    y = transform_labels(y)
     W1 = init_weights(len(X[0]), nn_hdim)
     b1 = init_bias(nn_hdim)
     W2 = init_weights(nn_hdim, len(X[0]))
@@ -78,13 +86,13 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
         dL_da = np.multiply((1 - np.tanh(h)), np.dot(dL_dyhat, W2))
         dL_db2 = dL_dyhat
         dL_db1 = dL_da
-        dL_dW1 = np.array(transpose(X[0]) * dL_da).transpose()
-        #print("dlda: " + str(dL_da))
-        #print("dldb1: " + str(dL_db1))
-        #print("dldb2: " + str(dL_db2))
-        #print("dldW1: ")
-        #print(str(dL_dW1))
-        #print("dldW2: " + str(dL_dW2))
+        dL_dW1 = np.array(transpose(X[index]) * dL_da).transpose()
+        # print("dlda: " + str(dL_da))
+        # print("dldb1: " + str(dL_db1))
+        # print("dldb2: " + str(dL_db2))
+        # print("dldW1: ")
+        # print(str(dL_dW1))
+        # print("dldW2: " + str(dL_dW2))
         W1 = W1 - learning_rate * dL_dW1
         b1 = b1 - learning_rate * dL_db1
         W2 = W2 - learning_rate * dL_dW2
@@ -101,14 +109,13 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
         model['b1'] = b1
         model['W2'] = W2
         model['b2'] = b2
-
-        if itr % 1000 == 0:
+        if print_loss and itr % 1000 == 0:
             error = calculate_loss(model, X, y)
             print("loss: " + str(error))
         index += 1
         if index == len(X):
             index = 0
-
+    return model
 
 # Function to generate a random number, mostly between -0.1 and 0.1
 def generate_random_number():
@@ -137,3 +144,14 @@ def init_bias(k):
 def init_weights(d, k):
     w = [[generate_random_number() for j in range(d)] for i in range(k)]
     return w
+
+
+def plot_decision_boundary(pred_func, X, y):
+    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    h = 0.01
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
