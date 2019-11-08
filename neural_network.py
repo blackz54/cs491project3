@@ -66,8 +66,8 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
     b2 = init_bias(len(X[0]))
     learning_rate = 0.01  # ada
     model = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
-    # for itr in range(0, num_passes):
     index = 0
+    
     for itr in range(0, num_passes):
         # y = calculate_loss(model, X, y)
         # print("y: " + str(y))

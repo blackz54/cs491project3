@@ -1,9 +1,9 @@
 import numpy as np
 from sklearn.datasets import make_moons
 import matplotlib.pyplot as plt
+from sklearn.datasets import make_moons
 import perceptron as pt
 import neural_network as nn
-
 
 # X = np.array([[-2, 1], [1, 1], [1.5, -0.5], [-2, -1], [-1, -1.5], [2, -2]])
 # Y = np.array([[0, 1], [0, 1], [0, 1], [1, 0], [1, 0], [1, 0]])
