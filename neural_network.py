@@ -11,7 +11,7 @@ def calculate_loss(model, X, y):
 
 
 def transform_probility_distribution(y):
-    return 0 if y[0] > 0.5 else 1
+    return 0 if y[0,0] > 0.5 else 1
 
 
 def calculate_yhat(model, x):
@@ -23,22 +23,18 @@ def calculate_yhat(model, x):
     # print("x: " + str(x))
     # print("W1: " + str(W1))
     # print("b1: " + str(b1))
-    a = [np.dot(x, W1[i]) + b1[i] for i in range(len(b1))]
+    a = np.add(np.matmul(x, W1),b1)
     h = np.tanh(a)
-    #print("a: " + str(a))
-    #print("len of a: " + str(len(a)))
+    # print("a: " + str(a))
     # print("W2: " + str(W2))
     # print("b2: " + str(b2))
     # print("h: " + str(h))
-    # print(type(h))
-    # print(type(h[0]))
 
-    z = [np.dot(h, W2[i]) + b2[i] for i in range(len(b2))]
-   # print("z: " + str(z))
-    y = softmax(z)
-    #print("y: " + str(y))
-    return y, a, h
-
+    z = np.add(np.matmul(h, W2),b2)
+    # print("z: " + str(z))
+    yhat = softmax(z)
+    # print("yhat: " + str(yhat))
+    return yhat, a, h
 
 def predict(model, x):
     #print(x)
@@ -67,7 +63,7 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
     learning_rate = 0.01  # ada
     model = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
     index = 0
-    
+
     for itr in range(0, num_passes):
         # y = calculate_loss(model, X, y)
         # print("y: " + str(y))
@@ -77,14 +73,15 @@ def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
         # print(1 - np.tanh(h))
         dL_dyhat = yhat - y[index]
         #print("dldy: " + str(dL_dyhat))
+
+        dL_da = np.multiply((1 - np.square(h)), np.matmul(dL_dyhat, W2.transpose()))
+
+        dL_dW2 = np.matmul(h.transpose(),dL_dyhat)
         dL_db2 = dL_dyhat
-        hT = transpose(h)
-        #print("hT: " + str(hT))
-        dL_dW2 = np.array(hT * dL_dyhat).transpose()
-        dL_da = np.multiply((1 - np.tanh(h)), np.dot(dL_dyhat, W2))
-        dL_db2 = dL_dyhat
+
+        dL_dW1 = np.matmul(np.array([X[index]]).transpose(),dL_da)
         dL_db1 = dL_da
-        dL_dW1 = np.array(transpose(X[index]) * dL_da).transpose()
+
         # print("dlda: " + str(dL_da))
         # print("dldb1: " + str(dL_db1))
         # print("dldb2: " + str(dL_db2))
@@ -128,20 +125,20 @@ def generate_random_number():
 # Function to calculate yhat prediction
 def softmax(x):
     ex = np.exp(x)
-    return ex / ex.sum(axis=0)
+    return np.true_divide(ex,ex.sum())
 
 
 # Function to initialize bias variables
 def init_bias(k):
     # b = [np.random.randint(-1,1) for j in range(k)]
     b = [generate_random_number() for j in range(k)]
-    return b
+    return np.array([b])
 
 
 # Function to initialize weights for x1 and x2 samples
 def init_weights(d, k):
-    w = [[generate_random_number() for j in range(d)] for i in range(k)]
-    return w
+    w = [[generate_random_number() for j in range(k)] for i in range(d)]
+    return np.array(w)
 
 
 def plot_decision_boundary(pred_func, X, y):
