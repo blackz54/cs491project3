@@ -1,8 +1,4 @@
 import numpy as np
-import sklearn as sk
-import perceptron as pt
-import matplotlib.pyplot as plt
-
 
 # Function to calculate loss of the current version of the neural network. Computes probability distribution matrix and then computes the loss
 # by calculating the summation of the real label multiplied by the log of the probability distribution for each sample. Returns the normalized loss.
@@ -12,11 +8,9 @@ def calculate_loss(model, X, y):
     loss = loss / (-1 * len(X))
     return loss
 
-
 # Helper function to return a 0 or a 1 based on whichever index of the label input has a greater probability distribution.
 def transform_probility_distribution(y):
     return 0 if y[0,0] > 0.5 else 1
-
 
 # Helper function to compute probability distribution yhat, a, and h variables. 
 def calculate_yhat(model, x):
@@ -32,17 +26,14 @@ def calculate_yhat(model, x):
     yhat = softmax(z)
     return yhat, a, h
 
-
 # Function to predict the binary output of a sample based on the current version of our neural network.
 def predict(model, x):
     yhat, a, h = calculate_yhat(model, x)
     return transform_probility_distribution(yhat)
 
-
 # Remove user input
 def transform_labels(y):
     return [[0, 1] if y[i] == 1 else [1, 0] for i in range(len(y))]
-
 
 # Function to develop the two layer neural network. Performs forward propagation and then backpropagation according to project specifications
 def build_model(X, y, nn_hdim, num_passes=20000, print_loss=False):
@@ -95,12 +86,10 @@ def generate_random_number():
             return np.around(temp / denom, 5)
     return generate_random_number()
 
-
 # Function to calculate yhat prediction
 def softmax(x):
     ex = np.exp(x)
     return np.true_divide(ex,ex.sum())
-
 
 # Function to initialize bias variables
 def init_bias(k):
@@ -108,19 +97,7 @@ def init_bias(k):
     b = [generate_random_number() for j in range(k)]
     return np.array([b])
 
-
 # Function to initialize weights for x1 and x2 samples
 def init_weights(d, k):
     w = [[generate_random_number() for j in range(k)] for i in range(d)]
     return np.array(w)
-
-
-def plot_decision_boundary(pred_func, X, y):
-    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
-    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
-    h = 0.01
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
-    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)

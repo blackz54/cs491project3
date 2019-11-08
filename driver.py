@@ -1,9 +1,17 @@
 import numpy as np
 from sklearn.datasets import make_moons
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_moons
-import perceptron as pt
 import neural_network as nn
+
+def plot_decision_boundary(pred_func, X, y):
+    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    h = 0.01
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+    Z = pred_func(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.Spectral)
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Spectral)
 
 #X = np.array([[-2, 1], [1, 1], [1.5, -0.5], [-2, -1], [-1, -1.5], [2, -2]])
 #Y = np.array([[0, 1], [0, 1], [0, 1], [1, 0], [1, 0], [1, 0]])
@@ -21,6 +29,6 @@ for i, nn_hdim in enumerate(hidden_layer_dimensions):
     plt.title('HiddenLayerSize%d' % nn_hdim)
     model = nn.build_model(X, y, nn_hdim, 200000, print_loss=True)
     #nn.plot_decision_boundary(lambda x: nn.predict(model, x), X, y)
-    nn.plot_decision_boundary(lambda X: np.array([nn.predict(model, x) for x in X]), X, y)
+    plot_decision_boundary(lambda X: np.array([nn.predict(model, x) for x in X]), X, y)
 
 plt.savefig('foo.png')
