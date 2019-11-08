@@ -4,10 +4,9 @@ import perceptron as pt
 
 
 def calculate_loss(model, X, y):
-    yhat = [calculate_yhat(model, X[i]) for i in range(len(X))]
+    yhat, a, h = zip(*[calculate_yhat(model, X[i]) for i in range(len(X))])
     loss = np.sum([y[i] * np.log(yhat[i]) for i in range(len(X))])
     loss = loss / (-1 * len(X))
-    print(loss)
     return loss
 
 def transform_probility_distribution(y):
@@ -23,16 +22,16 @@ def calculate_yhat(model, x):
     #print("b1: " + str(b1))
     #print("W2: " + str(W2))
     #print("b2: " + str(b2))
-    a = [np.dot(x, W1[i]) + b1[i] for i in range(len(b1))]
+    a = [np.dot([x], W1[i]) + b1[i] for i in range(len(b1))]
     h = np.tanh(a)
     #print("a: " + str(a))
     #print("len of a: " + str(len(a)))
     #print("h: " + str(h))
     z = [np.dot(h, W2[i]) + b2[i] for i in range(len(b2))]
     #print("z: " + str(z))
-    y = softmax(z)
+    yhat = softmax(z)
     #print("y: " + str(y))
-    return y
+    return yhat, a, h
 
 def predict(model, x):
     yhat = calculate_yhat(model, x)
@@ -50,13 +49,44 @@ def build_model(X, y, nn_hdim, num_passes=20, print_loss=False):
     b2 = init_bias(len(X[0]))
     learning_rate = 0.01 # ada
     model = {'W1': W1, 'b1': b1, 'W2': W2, 'b2': b2}
-    # for itr in range(0, num_passes):
-    for itr in range(0, 1):
-        G = [[0 for j in range(len(X[0]))] for i in range(nn_hdim)]
-        g = [0 for i in range(nn_hdim)]
-        #y = [predict(model, X[i]) for i in range(len(X))]
-        y = calculate_loss(model,X,y)
-        #print("y: " + str(y))
+
+    index = 0
+    for itr in range(0, num_passes):
+        #G = [[0 for j in range(len(X[0]))] for i in range(nn_hdim)]
+        #g = [0 for i in range(nn_hdim)]
+        yhat,a,h = calculate_yhat(model, X[index])
+
+        # reshaping arrays
+        dldy = np.array([yhat - y[index]])
+        h = np.array([h])
+
+        dlda = np.multiply((1 - np.tanh(h)),(np.dot(dldy,np.array(W2))))
+        #print(dldy)
+        dldw2 = np.dot(h.transpose(),dldy)
+        #print(dldw2) 
+        dldw1 = np.dot(np.array([X[index]]).transpose(),dlda)
+        #print(dldw1)
+
+        W1 = W1 - learning_rate*(dldw1.transpose())
+        #print(W1)  
+        W2 = W2 - learning_rate*(dldw2.transpose())
+        #print(W2)
+        b1 = b1 - learning_rate*dlda
+        #print(b1)
+        b2 = b2 - learning_rate*dldy
+        #print(b2)
+
+        model['W1'] = W1
+        model['W2'] = W2
+        model['b1'] = b1
+        model['b2'] = b2
+
+        if(print_loss and (num_passes % 1000 == 0)):
+            print(calculate_loss(model,X,y))
+
+        index += 1
+        if(index == len(X)):
+            index = 0
 
 # Function to generate a random number, mostly between -0.1 and 0.1
 def generate_random_number():
